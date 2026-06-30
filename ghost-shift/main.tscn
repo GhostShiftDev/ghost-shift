@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://cixyoa4c6pfle"]
+
+[ext_resource type="Script" uid="uid://cphu2jdlo0nxl" path="res://ghost.gd" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://dsogayerus54n" path="res://npc.tscn" id="2_0xm2m"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1vivr"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_8vrlf"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1vivr"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_1vivr"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_8vrlf"]
+radius = 3.0
+
+[node name="Main" type="Node3D" unique_id=1595106567]
+
+[node name="Ground" type="StaticBody3D" parent="." unique_id=1357487938]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1089324274]
+transform = Transform3D(20, 0, 0, 0, 0.2, 0, 0, 0, 20, 0, 0, 0)
+shape = SubResource("BoxShape3D_1vivr")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1662918362]
+transform = Transform3D(20, 0, 0, 0, 0.2, 0, 0, 0, 20, 0, 0, 0)
+mesh = SubResource("BoxMesh_8vrlf")
+
+[node name="Ghost" type="CharacterBody3D" parent="." unique_id=2085547428]
+script = ExtResource("1_ig7tw")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ghost" unique_id=1384292417]
+shape = SubResource("CapsuleShape3D_1vivr")
+disabled = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ghost" unique_id=1713204071]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+transparency = 0.5
+mesh = SubResource("CapsuleMesh_1vivr")
+
+[node name="CameraPivot" type="Node3D" parent="Ghost" unique_id=548949886]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Ghost/CameraPivot" unique_id=1476681974]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+
+[node name="DetectionZone" type="Area3D" parent="Ghost" unique_id=2120363321]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ghost/DetectionZone" unique_id=1491088401]
+shape = SubResource("SphereShape3D_8vrlf")
+
+[node name="NPC" parent="." unique_id=239882 instance=ExtResource("2_0xm2m")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2, 0)
+
+[connection signal="body_entered" from="Ghost/DetectionZone" to="Ghost" method="_on_detection_zone_body_entered"]
+[connection signal="body_exited" from="Ghost/DetectionZone" to="Ghost" method="_on_detection_zone_body_exited"]
