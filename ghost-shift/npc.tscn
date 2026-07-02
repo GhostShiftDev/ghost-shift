@@ -33,5 +33,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PossessZone" unique_id=207434065]
 shape = SubResource("SphereShape3D_1vivr")
 
+[node name="RoleLabel" type="Label3D" parent="." unique_id=1680498921]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+billboard = 1
+text = "GUARD"
+font_size = 64
+
 [connection signal="body_entered" from="PossessZone" to="." method="_on_possess_zone_body_entered"]
 [connection signal="body_exited" from="PossessZone" to="." method="_on_possess_zone_body_exited"]

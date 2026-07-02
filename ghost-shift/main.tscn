@@ -2,6 +2,9 @@
 
 [ext_resource type="Script" uid="uid://cphu2jdlo0nxl" path="res://ghost.gd" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://dsogayerus54n" path="res://npc.tscn" id="2_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://ea2o2vepdfrh" path="res://door.tscn" id="3_1bvp3"]
+[ext_resource type="PackedScene" uid="uid://dfhecil0j68bw" path="res://hud.tscn" id="4_lquwl"]
+[ext_resource type="Script" uid="uid://bmhv20l24wn64" path="res://game_manager.gd" id="5_lquwl"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_1vivr"]
 
@@ -49,8 +52,30 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ghost/DetectionZone" unique_id=1491088401]
 shape = SubResource("SphereShape3D_8vrlf")
 
-[node name="NPC" parent="." unique_id=239882 instance=ExtResource("2_0xm2m")]
+[node name="NPC" parent="." unique_id=239882 groups=["npc"] instance=ExtResource("2_0xm2m")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2, 0)
+
+[node name="NPC2" parent="." unique_id=220140542 groups=["npc"] instance=ExtResource("2_0xm2m")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, 0)
+
+[node name="NPC3" parent="." unique_id=1775672518 groups=["npc"] instance=ExtResource("2_0xm2m")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, 0)
+
+[node name="Door" parent="." unique_id=246265030 instance=ExtResource("3_1bvp3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="Door2" parent="." unique_id=1849659637 instance=ExtResource("3_1bvp3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.5, 5)
+required_role = "janitor"
+
+[node name="Door3" parent="." unique_id=1704223159 instance=ExtResource("3_1bvp3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.5, -8)
+required_role = "executive"
+
+[node name="HUD" parent="." unique_id=1392846226 instance=ExtResource("4_lquwl")]
+
+[node name="GameManager" type="Node3D" parent="." unique_id=245734023]
+script = ExtResource("5_lquwl")
 
 [connection signal="body_entered" from="Ghost/DetectionZone" to="Ghost" method="_on_detection_zone_body_entered"]
 [connection signal="body_exited" from="Ghost/DetectionZone" to="Ghost" method="_on_detection_zone_body_exited"]
