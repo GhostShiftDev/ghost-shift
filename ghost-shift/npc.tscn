@@ -1,14 +1,9 @@
 [gd_scene format=3 uid="uid://dsogayerus54n"]
 
 [ext_resource type="Script" uid="uid://df4j61gbwyf62" path="res://npc.gd" id="1_ideak"]
+[ext_resource type="PackedScene" uid="uid://drnbnb2hlebyw" path="res://models/character-a.glb" id="2_xxcha"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_0xm2m"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8vrlf"]
-albedo_color = Color(0.9779597, 0.23721546, 0, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_1vivr"]
-material = SubResource("StandardMaterial3D_8vrlf")
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_1vivr"]
 radius = 1.5
@@ -19,14 +14,11 @@ script = ExtResource("1_ideak")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=482949689]
 shape = SubResource("SphereShape3D_0xm2m")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1124801591]
-mesh = SubResource("CapsuleMesh_1vivr")
-
 [node name="CameraPivot" type="Node3D" parent="." unique_id=123042010]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot" unique_id=1632328476]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
 
 [node name="PossessZone" type="Area3D" parent="." unique_id=786924571]
 
@@ -38,6 +30,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
 billboard = 1
 text = "GUARD"
 font_size = 64
+
+[node name="character-a2" parent="." unique_id=111784413 instance=ExtResource("2_xxcha")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0)
 
 [connection signal="body_entered" from="PossessZone" to="." method="_on_possess_zone_body_entered"]
 [connection signal="body_exited" from="PossessZone" to="." method="_on_possess_zone_body_exited"]

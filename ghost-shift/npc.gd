@@ -5,7 +5,8 @@ const JUMP_VELOCITY = 4.5
 const MOUSE_SENSITIVITY = 0.003
 const PATROL_SPEED = 1.8
 const PATROL_WAIT_TIME = 2.0
-const PATROL_RANGE = 6.0
+const PATROL_RANGE = 5.0
+const RAGDOLL_RESET_TIME = 3.0
 
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -15,50 +16,84 @@ var controlling_ghost = null
 var ragdoll_velocity = Vector3.ZERO
 var ragdoll_timer = 0.0
 
-# Role — set by GameManager at start
-var role: String = "guard"
+@export var role: String = "guard"
 
-# Patrol state
 var patrol_target: Vector3 = Vector3.ZERO
 var patrol_wait_timer: float = 0.0
 var is_waiting: bool = false
 var patrol_origin: Vector3 = Vector3.ZERO
-
-# Nearby door for interaction
 var nearby_door = null
+var character_mesh: MeshInstance3D = null
 
 @onready var camera_pivot = $CameraPivot
 @onready var camera = $CameraPivot/Camera3D
-@onready var mesh = $MeshInstance3D
 @onready var role_label = $RoleLabel
 
 func _ready():
 	camera.current = false
 	role_label.visible = false
-	# Remember where we started for patrol range
+	add_to_group("npc")
 	patrol_origin = global_position
-	# Pick first patrol target immediately
 	_pick_new_patrol_target()
+	await get_tree().process_frame
+	character_mesh = _find_mesh(self)
+	_apply_role_visuals()
+
+func _find_mesh(node: Node) -> MeshInstance3D:
+	for child in node.get_children():
+		if child is MeshInstance3D:
+			return child
+		var found = _find_mesh(child)
+		if found:
+			return found
+	return null
 
 func set_role(new_role: String):
 	role = new_role
+	await get_tree().process_frame
+	character_mesh = _find_mesh(self)
+	_apply_role_visuals()
+
+func _apply_role_visuals():
 	role_label.text = role.to_upper()
-	# Color-code the NPC mesh by role so they look different
-	var mat = StandardMaterial3D.new()
+	# Role color for label
+	var role_color: Color
 	match role:
 		"guard":
-			mat.albedo_color = Color(0.2, 0.4, 1.0)    # Blue
+			role_color = Color(0.3, 0.5, 1.0)
 		"janitor":
-			mat.albedo_color = Color(1.0, 0.8, 0.1)    # Yellow
+			role_color = Color(1.0, 0.85, 0.1)
 		"executive":
-			mat.albedo_color = Color(0.5, 0.1, 0.8)    # Purple
-	mesh.set_surface_override_material(0, mat)
+			role_color = Color(0.7, 0.2, 1.0)
+		_:
+			role_color = Color(1.0, 1.0, 1.0)
+	role_label.modulate = role_color
+	# Apply a subtle color tint to the mesh while keeping Kenney texture
+	if character_mesh:
+		var mat = character_mesh.get_active_material(0)
+		if mat == null:
+			mat = StandardMaterial3D.new()
+		else:
+			# Duplicate so we don't modify the shared resource
+			mat = mat.duplicate()
+		if mat is StandardMaterial3D:
+			# Subtle tint — not full color override, keeps the texture visible
+			mat.albedo_color = Color(
+				role_color.r * 0.6 + 0.4,
+				role_color.g * 0.6 + 0.4,
+				role_color.b * 0.6 + 0.4,
+				1.0
+			)
+		character_mesh.set_surface_override_material(0, mat)
 
 func _pick_new_patrol_target():
-	# Random point within PATROL_RANGE of starting position
 	var rand_x = randf_range(-PATROL_RANGE, PATROL_RANGE)
 	var rand_z = randf_range(-PATROL_RANGE, PATROL_RANGE)
-	patrol_target = patrol_origin + Vector3(rand_x, 0, rand_z)
+	patrol_target = Vector3(
+		clamp(patrol_origin.x + rand_x, -8.0, 8.0),
+		patrol_origin.y,
+		clamp(patrol_origin.z + rand_z, -8.0, 8.0)
+	)
 	is_waiting = false
 
 func possess(ghost):
@@ -67,8 +102,9 @@ func possess(ghost):
 	ragdoll_timer = 0.0
 	controlling_ghost = ghost
 	camera.current = true
-	mesh.rotation.z = 0.0
-	mesh.rotation.x = 0.0
+	if character_mesh:
+		character_mesh.rotation.z = 0.0
+		character_mesh.rotation.x = 0.0
 	role_label.visible = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
@@ -85,8 +121,18 @@ func _start_ragdoll():
 	var rand_x = randf_range(-6.0, 6.0)
 	var rand_z = randf_range(-6.0, 6.0)
 	ragdoll_velocity = Vector3(rand_x, 3.0, rand_z)
-	var tween = create_tween()
-	tween.tween_property(mesh, "rotation:z", deg_to_rad(90), 0.3)
+	if character_mesh:
+		var tween = create_tween()
+		tween.tween_property(character_mesh, "rotation:z", deg_to_rad(90), 0.3)
+
+func _stand_back_up():
+	is_ragdoll = false
+	ragdoll_velocity = Vector3.ZERO
+	if character_mesh:
+		var tween = create_tween()
+		tween.tween_property(character_mesh, "rotation:z", 0.0, 0.3)
+		tween.tween_property(character_mesh, "rotation:x", 0.0, 0.3)
+	_pick_new_patrol_target()
 
 func _unhandled_input(event):
 	if not is_possessed:
@@ -114,27 +160,23 @@ func _physics_process(delta):
 			ragdoll_velocity.y = 0.0
 			ragdoll_velocity.x = move_toward(ragdoll_velocity.x, 0.0, 2.5 * delta)
 			ragdoll_velocity.z = move_toward(ragdoll_velocity.z, 0.0, 2.5 * delta)
-			if ragdoll_timer < 0.1:
-				var tween = create_tween()
-				tween.tween_property(mesh, "rotation:z", deg_to_rad(90), 0.2)
 		velocity = ragdoll_velocity
 		move_and_slide()
+		if ragdoll_timer >= RAGDOLL_RESET_TIME:
+			_stand_back_up()
 		return
 
 	if is_possessed:
 		_possessed_movement(delta)
 		return
 
-	# --- PATROL (not possessed, not ragdolling) ---
 	_patrol_movement(delta)
 
 func _patrol_movement(delta):
-	# Apply gravity
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 	else:
 		velocity.y = 0.0
-
 	if is_waiting:
 		patrol_wait_timer -= delta
 		velocity.x = move_toward(velocity.x, 0.0, PATROL_SPEED)
@@ -145,42 +187,32 @@ func _patrol_movement(delta):
 		var target_flat = Vector3(patrol_target.x, global_position.y, patrol_target.z)
 		var dir = (target_flat - global_position)
 		var dist = dir.length()
-
 		if dist < 0.5:
-			# Reached target — wait before picking next
 			is_waiting = true
 			patrol_wait_timer = PATROL_WAIT_TIME
 		else:
 			dir = dir.normalized()
 			velocity.x = dir.x * PATROL_SPEED
 			velocity.z = dir.z * PATROL_SPEED
-			# Face direction of movement smoothly
-			var look_target = global_position + Vector3(dir.x, 0, dir.z)
+			var look_target = global_position + Vector3(dir.x, 0.0, dir.z)
 			look_at(look_target, Vector3.UP)
-
 	move_and_slide()
 
 func _possessed_movement(delta):
 	if not is_on_floor():
 		velocity.y -= gravity * delta
-
 	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
-
 	var input_dir = Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
 	)
-	var direction = (
-		transform.basis * Vector3(input_dir.x, 0, input_dir.y)
-	).normalized()
-
+	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
 	else:
 		velocity.x = move_toward(velocity.x, 0, SPEED)
 		velocity.z = move_toward(velocity.z, 0, SPEED)
-
 	move_and_slide()
 
 func set_nearby_door(door):

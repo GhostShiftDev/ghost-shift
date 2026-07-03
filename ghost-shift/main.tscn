@@ -12,21 +12,55 @@
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1vivr"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lquwl"]
+transparency = 1
+albedo_color = Color(0.6651851, 0.85430586, 1, 0.5)
+emission_enabled = true
+emission = Color(0.48452926, 0.735357, 1, 1)
+emission_energy_multiplier = 1.5
+
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_1vivr"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_8vrlf"]
 radius = 3.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1vivr"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8vrlf"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_v5gy4"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qbdty"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_auskg"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d2pp6"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u7cuq"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o5tgd"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0sxyj"]
+albedo_color = Color(0.28485027, 0.28485027, 0.28485027, 1)
 
 [node name="Main" type="Node3D" unique_id=1595106567]
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=1357487938]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=1089324274]
-transform = Transform3D(20, 0, 0, 0, 0.2, 0, 0, 0, 20, 0, 0, 0)
+transform = Transform3D(30, 0, 0, 0, 0.2, 0, 0, 0, 30, 0, 0, 0)
 shape = SubResource("BoxShape3D_1vivr")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1662918362]
-transform = Transform3D(20, 0, 0, 0, 0.2, 0, 0, 0, 20, 0, 0, 0)
+transform = Transform3D(30, 0, 0, 0, 0.2, 0, 0, 0, 30, 0, 0, 0)
 mesh = SubResource("BoxMesh_8vrlf")
 
 [node name="Ghost" type="CharacterBody3D" parent="." unique_id=2085547428]
@@ -38,7 +72,8 @@ disabled = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ghost" unique_id=1713204071]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
-transparency = 0.5
+material_override = SubResource("StandardMaterial3D_lquwl")
+transparency = 0.6
 mesh = SubResource("CapsuleMesh_1vivr")
 
 [node name="CameraPivot" type="Node3D" parent="Ghost" unique_id=548949886]
@@ -52,30 +87,72 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ghost/DetectionZone" unique_id=1491088401]
 shape = SubResource("SphereShape3D_8vrlf")
 
+[node name="OmniLight3D" type="OmniLight3D" parent="Ghost" unique_id=1488629115]
+light_color = Color(0.58383155, 0.7977378, 1, 1)
+light_energy = 0.5
+
 [node name="NPC" parent="." unique_id=239882 groups=["npc"] instance=ExtResource("2_0xm2m")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.967794, 2, 0)
 
 [node name="NPC2" parent="." unique_id=220140542 groups=["npc"] instance=ExtResource("2_0xm2m")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.421371, 2, 0)
 
 [node name="NPC3" parent="." unique_id=1775672518 groups=["npc"] instance=ExtResource("2_0xm2m")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.0574474, 2, 0)
 
 [node name="Door" parent="." unique_id=246265030 instance=ExtResource("3_1bvp3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8707242, 1.6, -6.9909363)
 
 [node name="Door2" parent="." unique_id=1849659637 instance=ExtResource("3_1bvp3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.5, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14880693, 1.5, -6.8891454)
 required_role = "janitor"
 
 [node name="Door3" parent="." unique_id=1704223159 instance=ExtResource("3_1bvp3")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.5, -8)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.8408349, 1.5, -6.9382586)
 required_role = "executive"
 
 [node name="HUD" parent="." unique_id=1392846226 instance=ExtResource("4_lquwl")]
 
 [node name="GameManager" type="Node3D" parent="." unique_id=245734023]
 script = ExtResource("5_lquwl")
+
+[node name="Level" type="Node3D" parent="." unique_id=2050722694]
+
+[node name="WallNorth" type="CSGBox3D" parent="Level" unique_id=1371448052]
+transform = Transform3D(30, 0, 0, 0, 4, 0, 0, 0, 0.5, 0, 2, -15)
+material = SubResource("StandardMaterial3D_1vivr")
+
+[node name="WallSouth" type="CSGBox3D" parent="Level" unique_id=1345668768]
+transform = Transform3D(30, 0, 0, 0, 4, 0, 0, 0, 0.5, 0, 2, 15)
+material = SubResource("StandardMaterial3D_8vrlf")
+
+[node name="WallWest" type="CSGBox3D" parent="Level" unique_id=1510224847]
+transform = Transform3D(0.5, 0, 0, 0, 4, 0, 0, 0, 30, -15, 2, 0)
+material = SubResource("StandardMaterial3D_v5gy4")
+
+[node name="WallEast" type="CSGBox3D" parent="Level" unique_id=206800527]
+transform = Transform3D(0.5, 0, 0, 0, 4, 0, 0, 0, 30, 15, 2, 0)
+material = SubResource("StandardMaterial3D_qbdty")
+
+[node name="DividerLeft" type="CSGBox3D" parent="Level" unique_id=1081808441]
+transform = Transform3D(0.5, 0, 0, 0, 4, 0, 0, 0, 20, -5, 2, 2.723093)
+material = SubResource("StandardMaterial3D_auskg")
+
+[node name="DividerRight" type="CSGBox3D" parent="Level" unique_id=566550895]
+transform = Transform3D(0.5, 0, 0, 0, 4, 0, 0, 0, 20, 5, 2, 2.7649515)
+material = SubResource("StandardMaterial3D_d2pp6")
+
+[node name="RoomWallLeft" type="CSGBox3D" parent="Level" unique_id=933483590]
+transform = Transform3D(10, 0, 0, 0, 4, 0, 0, 0, 0.5, -10, 2, -7)
+material = SubResource("StandardMaterial3D_u7cuq")
+
+[node name="RoomWallRight" type="CSGBox3D" parent="Level" unique_id=1340746823]
+transform = Transform3D(10, 0, 0, 0, 4, 0, 0, 0, 0.5, 10, 2, -7)
+material = SubResource("StandardMaterial3D_o5tgd")
+
+[node name="RoomWallCenter" type="CSGBox3D" parent="Level" unique_id=815322222]
+transform = Transform3D(6, 0, 0, 0, 4, 0, 0, 0, 0.5, 0, 2, -7)
+material = SubResource("StandardMaterial3D_0sxyj")
 
 [connection signal="body_entered" from="Ghost/DetectionZone" to="Ghost" method="_on_detection_zone_body_entered"]
 [connection signal="body_exited" from="Ghost/DetectionZone" to="Ghost" method="_on_detection_zone_body_exited"]

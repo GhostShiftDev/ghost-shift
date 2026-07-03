@@ -1,27 +1,25 @@
 extends Node
 
-# All available roles — one per door you have in the level
 var all_roles = ["guard", "janitor", "executive"]
 
 func _ready():
-	# Wait one frame so all NPCs are fully initialized
+	# Wait 2 frames — instanced scenes need extra time to call their own _ready
+	await get_tree().process_frame
 	await get_tree().process_frame
 	_assign_random_roles()
 
 func _assign_random_roles():
-	# Get every NPC in the scene
 	var npcs = get_tree().get_nodes_in_group("npc")
-	
+	print("GameManager found ", npcs.size(), " NPCs")
+
 	if npcs.size() == 0:
-		print("GameManager: no NPCs found — did you add them to the 'npc' group?")
+		print("ERROR: No NPCs found in group 'npc' — check npc.gd has add_to_group('npc') in _ready()")
 		return
-	
-	# Shuffle roles so they are different every round
+
 	var roles = all_roles.duplicate()
 	roles.shuffle()
-	
-	# Assign one role per NPC — cycle through roles if more NPCs than roles
+
 	for i in range(npcs.size()):
-		var role = roles[i % roles.size()]
-		npcs[i].set_role(role)
-		print("GameManager: assigned '", role, "' to ", npcs[i].name)
+		var assigned = roles[i % roles.size()]
+		npcs[i].set_role(assigned)
+		print("Assigned role '", assigned, "' to ", npcs[i].name)
