@@ -44,13 +44,10 @@ func _open_door():
 func _wrong_feedback():
 	is_animating = true
 	var start_x = position.x
-	# Flash red
 	var red_mat = StandardMaterial3D.new()
 	red_mat.albedo_color = Color(1.0, 0.0, 0.0)
 	mesh.set_surface_override_material(0, red_mat)
-	# Show floating label above the door
 	wrong_label.visible = true
-	# Shake
 	var tween = create_tween()
 	tween.tween_property(self, "position:x", start_x + 0.15, 0.05)
 	tween.tween_property(self, "position:x", start_x - 0.15, 0.05)

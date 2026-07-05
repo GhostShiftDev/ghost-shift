@@ -49,6 +49,18 @@ func _build_ui():
 	hint_label.text = "E = Possess/Exit   F = Interact"
 	root.add_child(hint_label)
 
+	# Role display — shown when possessing an NPC
+	var role_display = Label.new()
+	role_display.name = "RoleDisplay"
+	role_display.set_anchors_preset(Control.PRESET_BOTTOM_CENTER)
+	role_display.position = Vector2(-150, -110)
+	role_display.add_theme_font_size_override("font_size", 28)
+	role_display.add_theme_color_override("font_color", Color.WHITE)
+	role_display.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	role_display.visible = false
+	role_display.text = ""
+	root.add_child(role_display)
+
 	# Result label — center screen, hidden until game ends
 	result_label = Label.new()
 	result_label.set_anchors_preset(Control.PRESET_CENTER)
@@ -91,3 +103,26 @@ func _end_game(won: bool):
 		result_label.add_theme_color_override("font_color", Color.RED)
 	await get_tree().create_timer(3.0).timeout
 	get_tree().reload_current_scene()
+
+func show_role(role: String):
+	var d = get_node_or_null("RoleDisplay")
+	if not d:
+		# Fallback if node path differs — search by name
+		for child in get_children():
+			if child is Control:
+				d = child.get_node_or_null("RoleDisplay")
+				break
+	if d:
+		match role:
+			"guard":     d.add_theme_color_override("font_color", Color(0.3, 0.5, 1.0))
+			"janitor":   d.add_theme_color_override("font_color", Color(1.0, 0.85, 0.1))
+			"executive": d.add_theme_color_override("font_color", Color(0.7, 0.2, 1.0))
+		d.text = "YOU ARE: " + role.to_upper() + "\n[F] Open door    [E] Exit body"
+		d.visible = true
+
+func hide_role():
+	for child in get_children():
+		if child is Control:
+			var d = child.get_node_or_null("RoleDisplay")
+			if d:
+				d.visible = false

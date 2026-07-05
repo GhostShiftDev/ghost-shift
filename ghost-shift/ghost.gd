@@ -14,8 +14,10 @@ func _unhandled_input(event):
 	if event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		camera_pivot.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
-		camera_pivot.rotation.x = clamp(camera_pivot.rotation.x, deg_to_rad(-80), deg_to_rad(80))
-
+		camera_pivot.rotation.x = clamp(
+			camera_pivot.rotation.x,
+			deg_to_rad(-80), deg_to_rad(80)
+		)
 	if event is InputEventKey and event.pressed:
 		if event.keycode == KEY_ESCAPE:
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
@@ -50,16 +52,17 @@ func _on_detection_zone_body_exited(body):
 		nearby_npc = null
 
 func _physics_process(delta):
-	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-
+	var input_dir = Input.get_vector(
+		"move_left", "move_right", "move_forward", "move_back"
+	)
+	var direction = (
+		transform.basis * Vector3(input_dir.x, 0, input_dir.y)
+	).normalized()
 	var vertical = 0.0
 	if Input.is_action_pressed("ui_accept"):
 		vertical = 1.0
 	if Input.is_action_pressed("move_down"):
 		vertical = -1.0
-
 	velocity = direction * FLY_SPEED
 	velocity.y = vertical * FLY_SPEED
-
 	move_and_slide()

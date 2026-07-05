@@ -5,7 +5,7 @@ const JUMP_VELOCITY = 4.5
 const MOUSE_SENSITIVITY = 0.003
 const PATROL_SPEED = 1.8
 const PATROL_WAIT_TIME = 2.0
-const PATROL_RANGE = 5.0
+const PATROL_RANGE = 4.0
 const RAGDOLL_RESET_TIME = 3.0
 
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -31,7 +31,18 @@ var character_mesh: MeshInstance3D = null
 
 func _ready():
 	camera.current = false
+	# Bug 4 fix: force camera behind the character in code
+	# regardless of what's set in the scene file
+	camera.position = Vector3(0, 0.5, -4)
+	camera_pivot.position = Vector3(0, 1.6, 0)
+
+	# Bug 1 fix: guarantee NPC collides with layer 1 (walls + doors)
+	set_collision_layer_value(1, true)
+	set_collision_mask_value(1, true)
+
+	# Bug 3 fix: never show world-space label — role shown in HUD instead
 	role_label.visible = false
+
 	add_to_group("npc")
 	patrol_origin = global_position
 	_pick_new_patrol_target()
@@ -56,7 +67,6 @@ func set_role(new_role: String):
 
 func _apply_role_visuals():
 	role_label.text = role.to_upper()
-	# Role color for label
 	var role_color: Color
 	match role:
 		"guard":
@@ -68,16 +78,13 @@ func _apply_role_visuals():
 		_:
 			role_color = Color(1.0, 1.0, 1.0)
 	role_label.modulate = role_color
-	# Apply a subtle color tint to the mesh while keeping Kenney texture
 	if character_mesh:
 		var mat = character_mesh.get_active_material(0)
 		if mat == null:
 			mat = StandardMaterial3D.new()
 		else:
-			# Duplicate so we don't modify the shared resource
 			mat = mat.duplicate()
 		if mat is StandardMaterial3D:
-			# Subtle tint — not full color override, keeps the texture visible
 			mat.albedo_color = Color(
 				role_color.r * 0.6 + 0.4,
 				role_color.g * 0.6 + 0.4,
@@ -87,12 +94,13 @@ func _apply_role_visuals():
 		character_mesh.set_surface_override_material(0, mat)
 
 func _pick_new_patrol_target():
+	# Tighter clamp — keeps NPCs well inside room boundaries away from doors
 	var rand_x = randf_range(-PATROL_RANGE, PATROL_RANGE)
 	var rand_z = randf_range(-PATROL_RANGE, PATROL_RANGE)
 	patrol_target = Vector3(
-		clamp(patrol_origin.x + rand_x, -8.0, 8.0),
+		clamp(patrol_origin.x + rand_x, -6.0, 6.0),
 		patrol_origin.y,
-		clamp(patrol_origin.z + rand_z, -8.0, 8.0)
+		clamp(patrol_origin.z + rand_z, -6.0, 6.0)
 	)
 	is_waiting = false
 
@@ -105,14 +113,20 @@ func possess(ghost):
 	if character_mesh:
 		character_mesh.rotation.z = 0.0
 		character_mesh.rotation.x = 0.0
-	role_label.visible = true
+	# Bug 3 fix: tell HUD which role we are instead of showing world label
+	var hud = get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("show_role"):
+		hud.show_role(role)
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func unpossess():
 	is_possessed = false
 	camera.current = false
 	controlling_ghost = null
-	role_label.visible = false
+	# Tell HUD to hide role label
+	var hud = get_tree().get_first_node_in_group("hud")
+	if hud and hud.has_method("hide_role"):
+		hud.hide_role()
 	_start_ragdoll()
 
 func _start_ragdoll():
@@ -134,7 +148,9 @@ func _stand_back_up():
 		tween.tween_property(character_mesh, "rotation:x", 0.0, 0.3)
 	_pick_new_patrol_target()
 
-func _unhandled_input(event):
+# Bug 2 fix: use _input() not _unhandled_input() so F key always fires
+# when possessed, regardless of other nodes consuming events
+func _input(event):
 	if not is_possessed:
 		return
 	if event is InputEventMouseMotion:
@@ -151,6 +167,9 @@ func _unhandled_input(event):
 		if event.keycode == KEY_F:
 			if nearby_door:
 				nearby_door.try_open(role)
+			else:
+				# Debug — remove after confirming F works
+				print("F pressed but no nearby_door — are you standing at a door?")
 
 func _physics_process(delta):
 	if is_ragdoll:
@@ -165,11 +184,9 @@ func _physics_process(delta):
 		if ragdoll_timer >= RAGDOLL_RESET_TIME:
 			_stand_back_up()
 		return
-
 	if is_possessed:
 		_possessed_movement(delta)
 		return
-
 	_patrol_movement(delta)
 
 func _patrol_movement(delta):
@@ -184,7 +201,9 @@ func _patrol_movement(delta):
 		if patrol_wait_timer <= 0.0:
 			_pick_new_patrol_target()
 	else:
-		var target_flat = Vector3(patrol_target.x, global_position.y, patrol_target.z)
+		var target_flat = Vector3(
+			patrol_target.x, global_position.y, patrol_target.z
+		)
 		var dir = (target_flat - global_position)
 		var dist = dir.length()
 		if dist < 0.5:
@@ -206,7 +225,9 @@ func _possessed_movement(delta):
 	var input_dir = Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
 	)
-	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	var direction = (
+		transform.basis * Vector3(input_dir.x, 0, input_dir.y)
+	).normalized()
 	if direction:
 		velocity.x = direction.x * SPEED
 		velocity.z = direction.z * SPEED
