@@ -8,11 +8,13 @@ var is_animating = false
 @onready var wrong_label = $WrongLabel
 
 func _ready():
+	add_to_group("door")
 	wrong_label.visible = false
 	wrong_label.no_depth_test = true
-	_apply_door_color()
+	wrong_label.position = Vector3(0, 2.5, 0)
+	_set_color()
 
-func _apply_door_color():
+func _set_color():
 	var mat = StandardMaterial3D.new()
 	match required_role:
 		"guard":     mat.albedo_color = Color(0.2, 0.4, 1.0)
@@ -24,45 +26,61 @@ func try_open(role: String):
 	if is_open or is_animating:
 		return
 	if role == required_role:
-		_open_door()
+		_open()
 	else:
-		_wrong_feedback()
+		_wrong()
 
-func _open_door():
+func _open():
 	is_open = true
 	is_animating = true
+	# Disable collision so players can walk through
+	$CollisionShape3D.disabled = true
 	var mat = StandardMaterial3D.new()
 	mat.albedo_color = Color(0.0, 1.0, 0.3)
 	mesh.set_surface_override_material(0, mat)
-	var tween = create_tween()
-	tween.tween_property(self, "position:y", position.y + 4.0, 0.5)
-	tween.tween_callback(func(): is_animating = false)
+	var t = create_tween()
+	t.tween_property(self, "position:y", position.y + 4.0, 0.5)
+	t.tween_callback(func(): is_animating = false)
 	var hud = get_tree().get_first_node_in_group("hud")
 	if hud:
 		hud.door_opened()
 
-func _wrong_feedback():
+func _wrong():
 	is_animating = true
-	var start_x = position.x
-	var red_mat = StandardMaterial3D.new()
-	red_mat.albedo_color = Color(1.0, 0.0, 0.0)
-	mesh.set_surface_override_material(0, red_mat)
+	var sx = position.x
+	var original_color = mesh.get_surface_override_material(0).albedo_color if mesh.get_surface_override_material(0) else Color.WHITE
+	
+	# Flash red with emission
+	var red = StandardMaterial3D.new()
+	red.albedo_color = Color(1.0, 0.0, 0.0)
+	red.emission_enabled = true
+	red.emission = Color(1.0, 0.0, 0.0)
+	red.emission_energy_multiplier = 3.0
+	red.roughness = 0.3
+	mesh.set_surface_override_material(0, red)
+	
+	# Show wrong label with dramatic effect
 	wrong_label.visible = true
-	var tween = create_tween()
-	tween.tween_property(self, "position:x", start_x + 0.15, 0.05)
-	tween.tween_property(self, "position:x", start_x - 0.15, 0.05)
-	tween.tween_property(self, "position:x", start_x + 0.10, 0.05)
-	tween.tween_property(self, "position:x", start_x, 0.05)
-	tween.tween_callback(func():
-		_apply_door_color()
+	wrong_label.modulate = Color.RED
+	wrong_label.text = "WRONG ROLE!"
+	
+	var t = create_tween()
+	t.set_parallel(true)
+	
+	# Shake animation
+	t.tween_property(self, "position:x", sx+0.3, 0.06)
+	t.tween_property(self, "position:x", sx-0.3, 0.06)
+	t.tween_property(self, "position:x", sx+0.25, 0.06)
+	t.tween_property(self, "position:x", sx-0.25, 0.06)
+	t.tween_property(self, "position:x", sx+0.2, 0.06)
+	t.tween_property(self, "position:x", sx-0.2, 0.06)
+	t.tween_property(self, "position:x", sx+0.15, 0.06)
+	t.tween_property(self, "position:x", sx, 0.06)
+	
+	# Color flash back to original
+	t.tween_interval(0.3)
+	t.tween_callback(func():
+		_set_color()
 		wrong_label.visible = false
 		is_animating = false
 	)
-
-func _on_interact_zone_body_entered(body):
-	if body.has_method("set_nearby_door"):
-		body.set_nearby_door(self)
-
-func _on_interact_zone_body_exited(body):
-	if body.has_method("set_nearby_door"):
-		body.set_nearby_door(null)
